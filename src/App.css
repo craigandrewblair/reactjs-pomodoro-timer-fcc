@@ -1,0 +1,54 @@
+.App{
+  height: 100vh;
+  width: 60vw;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-evenly;
+}
+
+#App-title{
+  font-family: Arial-Black;
+  font-size: 40px;
+  color: #FFFFFF;
+  position: relative;
+  top: -20px;
+}
+
+#FooterNote{
+  font-family: Arial-Black;
+  font-size: 18px;
+  color: #FFFFFF;
+  position: relative;
+  top: -50px;
+}
+
+#Device{
+  position: relative;
+  top: -50px;
+}
+
+#Row2{
+  height: 100px;
+  width: 340px;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  padding: 20px 0;
+}
+
+#Row3{
+  height: 100px;
+  width: 340px;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+
+#UpDownBtnDiv{
+  height: 100px;
+  width: 100px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
