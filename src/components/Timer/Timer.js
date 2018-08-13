@@ -9,33 +9,101 @@ import RefreshIcon from '../../images/RefreshIcon.png';
 import UpIcon from '../../images/UpIcon.png';
 import DownIcon from '../../images/DownIcon.png';
 
-class cdTimer extends React.Component {
+class PomodoroTimer extends React.Component {
   constructor(props){
     super(props)
     this.state = {
-      timer: 0, // subtract time from length
-      sessionLength: 25, // stores value of session input value
-      breakLength: 5, // stores value of break input value
-      time: 0, // time calculation
-      start: 0, // date on click
-      running: false, // running interval
-      chime: false, // flag play audio
-      lap: 0, // phase counter
-      phase: 'session', // phase identifier
-      started: false // needed for pause condition
+      timer: 25 * 60,
+      sessionLength: 25,
+      breakLength: 5,
+      running: false,
+      chime: false,
+      phase: 'Session',
+      lap: 0,
+      started: false
     }
   }
 
-  //----------------------------- cdTimer Control -----------------------------//
+  //----------------------------- Timer Control -----------------------------//
 
   playPauseHandler = () => {
-
+    if(this.state.running === false && this.state.started === false){
+      this.setState((prevState, props) => {
+        return{
+          timer: this.state.phase === 'Session' ? this.state.sessionLength * 60 : this.state.breakLength * 60,
+          running: true,
+          started: true,
+          cdTimer: setInterval(() => {
+            this.timerControl();
+            this.phaseControl();
+           }, 1000)
+        }
+        });
+        console.log('this.state.running === false && this.state.started === false');
+      }
+      // play/pause control after midway through session
+      else if(this.state.running) {
+        this.setState({
+          running: false
+        });
+        clearInterval(this.state.cdTimer);
+        console.log('this.state.running');
+        console.log(this.state.timer);
+      }
+      // play/pause control after midway through session
+      else if(this.state.running === false && this.state.started === true) {
+        this.setState({
+          running: true,
+          cdTimer: setInterval(() => {
+            this.timerControl();
+            this.phaseControl();
+           }, 1000)
+        })
+        console.log('this.state.running === false && this.state.started === true');
+      }
   }
 
+  timerControl = () => {
+    if(this.state.running === true){
+      this.setState({
+        timer: this.state.timer - 1
+      });
+    }
+  }
+
+  phaseControl = () => {
+    if(this.state.timer < 0){
+      console.log('phase executed');
+      this.state.phase === 'Session' 
+      ? 
+      this.setState({
+        phase: 'Break',
+        running: false,
+        started: false
+      }) 
+      : 
+      this.setState({
+        phase: 'Session',
+        running: false,
+        started: false
+      })
+      this.playPauseHandler();
+    }
+  }
   //----------------------------- Full State Reinitialization -----------------------------//
 
   resetHandler = () => {
-
+    this.setState({
+      timer: 25 * 60,
+      sessionLength: 25,
+      breakLength: 5,
+      running: false,
+      chime: false,
+      phase: 'Session',
+      lap: 0,
+      started: false
+    });
+    clearInterval(this.state.cdTimer);
   }
 
   //----------------------------- Input Handlers -----------------------------//
@@ -43,8 +111,9 @@ class cdTimer extends React.Component {
   sessionInputHandler = (event) => {
     this.setState({
       sessionLength: event.target.value,
-      timer: event.target.value,
+      timer: event.target.value
     });
+    console.log('session input changed');
   }
 
   breakInputHandler = (event) => {
@@ -56,9 +125,10 @@ class cdTimer extends React.Component {
   //----------------------------- Input Controls -----------------------------//
 
   incrementSessionHandler = () => {
-    if(this.state.sessionLength >= 1 && this.state.sessionLength < 60){
+    if(this.state.sessionLength > 1 && this.state.sessionLength < 60){
       this.setState({
-        sessionLength: this.state.sessionLength + 1
+        sessionLength: this.state.sessionLength + 1,
+        timer: this.state.timer + 60
       });
     }
   }
@@ -66,13 +136,14 @@ class cdTimer extends React.Component {
   decrementSessionHandler = () => {
     if(this.state.sessionLength > 1){
       this.setState({
-        sessionLength: this.state.sessionLength - 1
+        sessionLength: this.state.sessionLength - 1,
+        timer: this.state.timer - 60
       });
     }
   }
   
   incrementBreakHandler = () => {
-    if(this.state.breakLength >= 1 && this.state.breakLength < 60){
+    if(this.state.breakLength > 1 && this.state.breakLength < 60){
       this.setState({
         breakLength: this.state.breakLength + 1
       });
@@ -87,10 +158,34 @@ class cdTimer extends React.Component {
     }
   }
 
+  //----------------------------- Audio -----------------------------//
+
+  audioHandler = (url) => {
+    let audio = new Audio(url);
+    audio.play();
+  }
+
+  //----------------------------- Formatting -----------------------------//
+
+
+  convertMinToMilli = (min) => {
+    const milli = min * 60000
+    return milli;
+  }
+
+  timeFormatter = () => {
+    let minutes = Math.floor(this.state.timer / 60);
+    let seconds = this.state.timer - minutes * 60;
+    seconds = seconds < 10 ? '0' + seconds : seconds;
+    minutes = minutes < 10 ? '0' + minutes : minutes;
+    return minutes + ':' + seconds;
+  }
+
   render() {
+    this.state.chime === true ? this.audioHandler(Chime) : null;
     return(
       <div id='Device'>
-      <Display />
+      <Display timerLabel={this.state.phase} timer={this.timeFormatter()}/>
       <div id='Row2'>
         <SquareDsp id='session-label' title='Session Length' numId='session-length' sessionLength={this.state.sessionLength}/>
         <SquareBtn id='start_stop' onclick={this.playPauseHandler} src={PlayPauseIcon}/>
@@ -111,4 +206,5 @@ class cdTimer extends React.Component {
     )
   }
 }
-export default cdTimer
+export default PomodoroTimer
+
