@@ -1,5 +1,4 @@
 import React, { Component } from 'react';
-import Chime from '../../sounds/chime.mp3';
 import Display from '../Display/Display';
 import SquareBtn from '../SquareBtn/SquareBtn';
 import SquareDsp from '../SquareDsp/SquareDsp';
@@ -8,6 +7,7 @@ import PlayPauseIcon from '../../images/PlayPauseIcon.png';
 import RefreshIcon from '../../images/RefreshIcon.png';
 import UpIcon from '../../images/UpIcon.png';
 import DownIcon from '../../images/DownIcon.png';
+import Alarm from '../../sounds/alarm.mp3'
 
 class PomodoroTimer extends React.Component {
   constructor(props){
@@ -19,7 +19,6 @@ class PomodoroTimer extends React.Component {
       running: false,
       chime: false,
       phase: 'Session',
-      lap: 0,
       started: false
     }
   }
@@ -28,6 +27,7 @@ class PomodoroTimer extends React.Component {
 
   playPauseHandler = () => {
     if(this.state.running === false && this.state.started === false){
+      clearInterval(this.state.cdTimer);
       this.setState((prevState, props) => {
         return{
           timer: this.state.phase === 'Session' ? this.state.sessionLength * 60 : this.state.breakLength * 60,
@@ -39,18 +39,13 @@ class PomodoroTimer extends React.Component {
            }, 1000)
         }
         });
-        console.log('this.state.running === false && this.state.started === false');
       }
-      // play/pause control after midway through session
       else if(this.state.running) {
         this.setState({
           running: false
         });
         clearInterval(this.state.cdTimer);
-        console.log('this.state.running');
-        console.log(this.state.timer);
       }
-      // play/pause control after midway through session
       else if(this.state.running === false && this.state.started === true) {
         this.setState({
           running: true,
@@ -59,7 +54,6 @@ class PomodoroTimer extends React.Component {
             this.phaseControl();
            }, 1000)
         })
-        console.log('this.state.running === false && this.state.started === true');
       }
   }
 
@@ -73,7 +67,7 @@ class PomodoroTimer extends React.Component {
 
   phaseControl = () => {
     if(this.state.timer < 0){
-      console.log('phase executed');
+      this.audioHandler();
       this.state.phase === 'Session' 
       ? 
       this.setState({
@@ -100,26 +94,11 @@ class PomodoroTimer extends React.Component {
       running: false,
       chime: false,
       phase: 'Session',
-      lap: 0,
       started: false
     });
     clearInterval(this.state.cdTimer);
-  }
-
-  //----------------------------- Input Handlers -----------------------------//
-
-  sessionInputHandler = (event) => {
-    this.setState({
-      sessionLength: event.target.value,
-      timer: event.target.value
-    });
-    console.log('session input changed');
-  }
-
-  breakInputHandler = (event) => {
-    this.setState({
-      breakLength: event.target.value
-    });
+    this.chime.pause();
+    this.chime.currentTime = 0
   }
 
   //----------------------------- Input Controls -----------------------------//
@@ -160,31 +139,24 @@ class PomodoroTimer extends React.Component {
 
   //----------------------------- Audio -----------------------------//
 
-  audioHandler = (url) => {
-    let audio = new Audio(url);
-    audio.play();
+  audioHandler = () => {
+    this.chime.play();
   }
 
   //----------------------------- Formatting -----------------------------//
 
-
-  convertMinToMilli = (min) => {
-    const milli = min * 60000
-    return milli;
-  }
-
   timeFormatter = () => {
-    let minutes = Math.floor(this.state.timer / 60);
-    let seconds = this.state.timer - minutes * 60;
-    seconds = seconds < 10 ? '0' + seconds : seconds;
-    minutes = minutes < 10 ? '0' + minutes : minutes;
-    return minutes + ':' + seconds;
+    let m = Math.floor(this.state.timer / 60);
+    let s = this.state.timer - m * 60;
+    s = s < 10 ? '0' + s : s;
+    m = m < 10 ? '0' + m : m;
+    return m + ':' + s;
   }
 
   render() {
-    this.state.chime === true ? this.audioHandler(Chime) : null;
     return(
       <div id='Device'>
+      <audio id="beep" preload="auto" src={Alarm} ref={(audio) => { this.chime = audio; }} />
       <Display timerLabel={this.state.phase} timer={this.timeFormatter()}/>
       <div id='Row2'>
         <SquareDsp id='session-label' title='Session Length' numId='session-length' sessionLength={this.state.sessionLength}/>
